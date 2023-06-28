@@ -6,6 +6,7 @@ import com.example.userservice.model.User;
 import com.example.userservice.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -33,6 +34,9 @@ public class UserService implements UserDetailsService {
 
     public void registerUser(RegisterRequest registerRequest) {
 
+
+        log.info("User {} has registered",registerRequest.getEmail());
+
         userRepository.save(
                 User.builder()
                         .email(registerRequest.getEmail())
@@ -51,10 +55,11 @@ public class UserService implements UserDetailsService {
         User user = userRepository.findByEmail(loginRequest.getEmail());
 
 
-        System.out.println(user.getPassword() +" :::::::::: "+loginRequest.getPassword());
-        System.out.println(user.getPassword().equals(loginRequest.getPassword()) );
+
         if(user != null && user.getPassword().equals(loginRequest.getPassword()) )
         {
+            log.info("User {} logged in",loginRequest.getEmail());
+
             httpSession.setAttribute(user.getEmail(),user.getId());
 
             return jwtTokenProvider.generateToken(user.getEmail(),user.getRole());
@@ -64,4 +69,15 @@ public class UserService implements UserDetailsService {
             return "User not found";
         }
     }
+
+    public String getRoleFromToken(String token)
+    {
+        return jwtTokenProvider.getRoleFromToken(token);
+    }
+
+    public boolean validateToken(String token)
+    {
+        return jwtTokenProvider.validateToken(token);
+    }
+
 }

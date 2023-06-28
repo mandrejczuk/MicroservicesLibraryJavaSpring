@@ -46,4 +46,17 @@ public class UserController {
         return "gut";
     }
 
+    @GetMapping("/token/role")
+    public String getRoleFromToken(@RequestHeader("Authorization") String token){
+
+        return userService.getRoleFromToken(token);
+    }
+
+    @GetMapping("/token/validate")
+    public boolean isTokenValid(@RequestHeader("Authorization") String token){
+
+        return userService.validateToken(token);
+    }
+
+
 }

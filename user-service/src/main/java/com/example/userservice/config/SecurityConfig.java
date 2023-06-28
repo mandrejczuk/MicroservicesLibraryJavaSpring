@@ -18,7 +18,7 @@ public class SecurityConfig  {
         return http.csrf().disable()
                 .formLogin().disable()
                 .authorizeHttpRequests()
-                .antMatchers("/api/user/login","/api/user/register", "/api/user/token", "/api/user/validate").permitAll()
+                .antMatchers("/api/user/login","/api/user/register", "/api/user/token", "/api/user/token/validate").permitAll()
                 .and()
                 .build();
     }
