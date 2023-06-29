@@ -9,6 +9,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -19,11 +21,13 @@ public class AuditService {
 
     public void createAudit(AuditRequest auditRequest) {
 
+        log.info("CREATE AUDIT CALLED");
+
         auditRepository.save(
                 AuditEvent.builder()
                         .action(auditRequest.getAction())
                         .source(auditRequest.getSource())
-                        .timestamp(auditRequest.getTimestamp())
+                        .timestamp(LocalDateTime.parse(auditRequest.getTimestamp()))
                         .userId(auditRequest.getUserId())
                         .build()
         );
