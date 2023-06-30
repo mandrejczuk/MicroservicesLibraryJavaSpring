@@ -32,4 +32,5 @@ public class AuditEvent {
     private String source;
     @Field(name = "userId")
     private String userId;
+
 }

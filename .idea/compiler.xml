@@ -7,11 +7,17 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="api-gateway" />
         <module name="LibraryMicroservices" />
+        <module name="book-service" />
+        <module name="audit-service" />
+        <module name="borrowing-service" />
+        <module name="return-service" />
+        <module name="reservation-service" />
+        <module name="api-gateway" />
+        <module name="library-staff-service" />
+        <module name="library-service" />
         <module name="user-service" />
         <module name="eureka-server" />
-        <module name="audit-service" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
@@ -22,8 +28,14 @@
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="api-gateway" options="-parameters" />
       <module name="audit-service" options="-parameters" />
+      <module name="book-service" options="-parameters" />
+      <module name="borrowing-service" options="-parameters" />
       <module name="common" options="-parameters" />
       <module name="eureka-server" options="-parameters" />
+      <module name="library-service" options="-parameters" />
+      <module name="library-staff-service" options="-parameters" />
+      <module name="reservation-service" options="-parameters" />
+      <module name="return-service" options="-parameters" />
       <module name="user-service" options="-parameters" />
     </option>
   </component>

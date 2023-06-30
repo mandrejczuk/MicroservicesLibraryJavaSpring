@@ -43,11 +43,7 @@ public class UserService implements UserDetailsService {
     public void registerUser(RegisterRequest registerRequest) {
 
 
-
-
-
-
-        log.info("User {} has registered",registerRequest.getEmail());
+        log.info("User {} has registered", registerRequest.getEmail());
 
         User user = new User();
         user.setDebt(BigDecimal.ZERO);
@@ -59,38 +55,15 @@ public class UserService implements UserDetailsService {
 
         userRepository.save(user);
 
-        if(user.getId() != null)
-        {
+        if (user.getId() != null) {
             AuditRequest auditRequest = AuditRequest.builder()
                     .source("user-service")
                     .action("CREATE")
                     .userId(user.getId().toString())
                     .timestamp(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))
                     .build();
-
-
-
-
-            webClientBuilder.build()
-                    .post()
-                    .uri("http://audit-service/api/audit")
-                    .body(BodyInserters.fromValue(auditRequest))
-                    .retrieve()
-                    .toEntity(String.class)
-                    .subscribe(responseEntity -> {
-                        HttpStatus statusCode = responseEntity.getStatusCode();
-
-                       log.info("CREATE AUDIT REQUEST STATUS {}",statusCode);
-
-                        // Dodatkowe operacje na odpowiedzi
-                        // ...
-                    });
-
+            sendAuditEvent(auditRequest);
         }
-
-
-
-
     }
 
     public String loginUser(LoginRequest loginRequest)
@@ -104,6 +77,16 @@ public class UserService implements UserDetailsService {
             log.info("User {} logged in",loginRequest.getEmail());
 
             httpSession.setAttribute(user.getEmail(),user.getId());
+
+
+            AuditRequest auditRequest = AuditRequest.builder()
+                    .source("user-service")
+                    .action("LOGIN")
+                    .userId(user.getId().toString())
+                    .timestamp(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))
+                    .build();
+            sendAuditEvent(auditRequest);
+
 
             return jwtTokenProvider.generateToken(user.getEmail(),user.getRole());
         }
@@ -123,4 +106,23 @@ public class UserService implements UserDetailsService {
         return jwtTokenProvider.validateToken(token);
     }
 
+
+    private void sendAuditEvent(AuditRequest auditRequest)
+    {
+        webClientBuilder.build()
+                .post()
+                .uri("http://audit-service/api/audit")
+                .body(BodyInserters.fromValue(auditRequest))
+                .retrieve()
+                .toEntity(String.class)
+                .subscribe(responseEntity -> {
+                    HttpStatus statusCode = responseEntity.getStatusCode();
+
+                    log.info("CREATE AUDIT REQUEST STATUS {}",statusCode);
+
+                    // Dodatkowe operacje na odpowiedzi
+                    // ...
+                });
+
+    }
 }
