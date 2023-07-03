@@ -53,8 +53,18 @@ public class UserController {
     @GetMapping("/token/validate")
     public boolean isTokenValid(@RequestHeader("Authorization") String token){
 
+        System.out.println(token);
+
         return userService.validateToken(token);
     }
+
+    @GetMapping("/token/id")
+    public String getIdFromToken(@RequestHeader("Authorization") String token){
+
+        return userService.getIdFromToken(token);
+    }
+
+
 
 
 }

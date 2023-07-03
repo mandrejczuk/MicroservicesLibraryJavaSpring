@@ -101,6 +101,11 @@ public class UserService implements UserDetailsService {
         return jwtTokenProvider.getRoleFromToken(token);
     }
 
+    public String getIdFromToken(String token)
+    {
+        return userRepository.findByEmail(jwtTokenProvider.getUsernameFromToken(token)).getId().toString();
+    }
+
     public boolean validateToken(String token)
     {
         return jwtTokenProvider.validateToken(token);
