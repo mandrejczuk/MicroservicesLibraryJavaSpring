@@ -7,6 +7,7 @@ import com.example.bookservice.repository.BookRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.BodyInserters;
@@ -14,8 +15,11 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Mono;
 
+import java.rmi.NoSuchObjectException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @Service
@@ -26,7 +30,7 @@ public class BookService {
     private final BookRepository bookRepository;
     private final WebClient.Builder webClientBuilder;
 
-    public Mono<AuditRequest> createAuditRequest(String token) {
+    public Mono<AuditRequest> createAuditRequest(String token, String action) {
 
         Mono<Boolean> isTokenValidMono = isTokenValid(token);
         Mono<String> userIdMono = idFromToken(token);
@@ -44,7 +48,7 @@ public class BookService {
                     if (isTokenValid) {
                         if (!userRole.equals("USER")) {
                             return Mono.just(AuditRequest.builder()
-                                    .action("CREATE")
+                                    .action(action)
                                     .source("book-service")
                                     .userId(userId)
                                     .timestamp(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))
@@ -121,4 +125,39 @@ public class BookService {
     }
 
 
+    public Optional<Book> getBookById(Long id) {
+
+      return   bookRepository.findById(id);
+
+    }
+
+    public List<Book> getAllBooks() {
+
+       return bookRepository.findAll();
+    }
+
+    public void updateBook(BookRequest bookRequest, Long id) throws NoSuchObjectException {
+
+        Optional<Book> book = bookRepository.findById(id);
+
+        if(book.isPresent())
+        {
+
+
+            bookRepository.save(Book.builder()
+                    .title(bookRequest.getTitle())
+                    .author(bookRequest.getAuthor())
+                    .isbn(bookRequest.getIsbn())
+                    .publication(bookRequest.getPublication())
+                    .status(bookRequest.getStatus())
+                    .libraryId(bookRequest.getLibraryId())
+                    .id(book.get().getId())
+                    .build());
+        }
+        else
+        {
+            throw new NoSuchObjectException("Book with provided id does not exist");
+        }
+
+    }
 }
