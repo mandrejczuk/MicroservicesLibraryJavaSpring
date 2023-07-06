@@ -44,7 +44,6 @@ public class BookService {
                     String userRole = tuple.getT3();
 
                     System.out.println(userRole);
-
                     if (isTokenValid) {
                         if (!userRole.equals("USER")) {
                             return Mono.just(AuditRequest.builder()
@@ -158,6 +157,41 @@ public class BookService {
         {
             throw new NoSuchObjectException("Book with provided id does not exist");
         }
+
+    }
+
+    public Mono<Book> changeBookStatusToReservation(String token, Long id) {
+
+       return isTokenValid(token).flatMap(valid-> {
+            if(valid)
+            {
+                Optional <Book> book = getBookById(id);
+
+                if(book.isPresent())
+                {
+                    if(book.get().getStatus() == Book.BookStatus.AVAILABLE)
+                    {
+                        book.get().setStatus(Book.BookStatus.RESERVED);
+                        bookRepository.save(book.get());
+
+                        return Mono.just(book.get());
+
+                    }
+                    else
+                    {
+                       return Mono.error(new ResponseStatusException(HttpStatus.CONFLICT));
+                    }
+                }
+                else
+                {
+                    return Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND));
+                }
+            }
+            else
+            {
+                return Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED));
+            }
+        });
 
     }
 }

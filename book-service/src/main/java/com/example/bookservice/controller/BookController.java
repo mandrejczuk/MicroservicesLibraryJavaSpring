@@ -85,5 +85,22 @@ public class BookController {
                  });
     }
 
+    @PutMapping("/reservation")
+    public Mono<ResponseEntity<Book>> changeBookStatusToReserved(@RequestHeader("Authorization") String token, @RequestParam Long id)
+    {
+        return bookService.changeBookStatusToReservation(token,id).flatMap(book->{
+
+            if(book.getStatus() == Book.BookStatus.RESERVED) {
+                return Mono.just(ResponseEntity.status(HttpStatus.OK).body(book));
+            }
+            else
+            {
+                return Mono.just(ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).body(book));
+            }
+
+        })
+                .onErrorResume(e-> Mono.error(e));
+    }
+
 
 }

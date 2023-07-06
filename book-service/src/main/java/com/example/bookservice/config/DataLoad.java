@@ -44,6 +44,16 @@ public class DataLoad {
                             .libraryId(1L)
                             .build()
             );
+            bookRepository.save(
+                    Book.builder()
+                            .title("The Cuckoo's Egg")
+                            .author("Cliff Stoll")
+                            .isbn("978-0385249461")
+                            .publication(LocalDate.of(2005,1, 1))
+                            .status(Book.BookStatus.DESTROYED)
+                            .libraryId(1L)
+                            .build()
+            );
         };
     }
 
