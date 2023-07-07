@@ -13,12 +13,13 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ResponseStatusException;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.awt.print.Book;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -87,6 +88,27 @@ public class ReservationService {
 
     }
 
+    public Flux<List<Reservation>> getUserReservations(String token) {
+        return isTokenValid(token)
+                .flatMapMany(valid -> {
+                    if (valid) {
+                        return idFromToken(token)
+                                .flatMapMany(userId -> {
+                                    AuditRequest auditRequest = AuditRequest.builder()
+                                            .action("GET")
+                                            .source("reservation-service")
+                                            .userId(userId)
+                                            .timestamp(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))
+                                            .build();
+                                    sendAuditEvent(auditRequest);
+
+                                    return Flux.just(reservationRepository.getAllByUserId(Long.parseLong(userId)));
+                                });
+                    } else {
+                        return Flux.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED));
+                    }
+                });
+    }
 
 
 
