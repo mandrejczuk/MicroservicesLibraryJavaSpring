@@ -1,5 +1,6 @@
 package com.example.reservationservice.controller;
 
+import com.example.reservationservice.dto.IdHolder;
 import com.example.reservationservice.dto.ReservationRequest;
 import com.example.reservationservice.model.Reservation;
 import com.example.reservationservice.service.ReservationService;
@@ -53,5 +54,15 @@ public class ReservationController {
                         return Flux.fromIterable(reservations);
                     }
                 });
+    }
+
+    @DeleteMapping
+    public Mono<HttpStatus> deleteReservation(@RequestHeader("Authorization") String token, @RequestBody IdHolder idHolder)
+    {
+
+        return reservationService.deleteReservation(token, idHolder.getId())
+                .flatMap(
+                       httpStatus -> Mono.just(httpStatus)
+                ).onErrorResume(e-> Mono.error(e));
     }
 }

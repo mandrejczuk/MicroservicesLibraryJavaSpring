@@ -27,6 +27,16 @@ public class DataLoad {
             );
             userRepository.save(
                     User.builder()
+                            .email("user2@user2")
+                            .debt(BigDecimal.ZERO)
+                            .name("Jane")
+                            .surname("Led")
+                            .role("USER")
+                            .password("user")
+                            .build()
+            );
+            userRepository.save(
+                    User.builder()
                             .email("admin@admin")
                             .debt(BigDecimal.ZERO)
                             .name("Gustavo")

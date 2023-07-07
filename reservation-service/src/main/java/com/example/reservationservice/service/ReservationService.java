@@ -8,6 +8,7 @@ import com.example.reservationservice.repository.ReservationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.BodyInserters;
@@ -108,6 +109,44 @@ public class ReservationService {
                         return Flux.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED));
                     }
                 });
+    }
+
+    public Mono<HttpStatus> deleteReservation(String token, Long reservationId)
+    {
+        return isTokenValid(token).flatMap(valid->{
+            if(valid)
+            {
+                return roleFromToken(token).flatMap(role ->{
+
+                    if(role.equals("USER"))
+                    {
+                        return idFromToken(token).flatMap(userId ->{
+
+                            if(reservationRepository.getAllByUserId(Long.parseLong(userId)).stream().anyMatch(r->r.getId().equals(reservationId)))
+                            {
+                                 reservationRepository.deleteById(reservationId);
+                                 return Mono.just( HttpStatus.OK);
+                            }
+                            else
+                            {
+                                return Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED));
+                            }
+                        });
+
+                    }
+                    else
+                    {
+                         reservationRepository.deleteById(reservationId);
+                         return Mono.just(HttpStatus.OK);
+                    }
+                });
+            }
+            else
+            {
+              return Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED));
+            }
+
+        });
     }
 
 
