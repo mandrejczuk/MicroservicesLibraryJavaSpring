@@ -56,11 +56,11 @@ public class ReservationController {
                 });
     }
 
-    @DeleteMapping
-    public Mono<HttpStatus> deleteReservation(@RequestHeader("Authorization") String token, @RequestBody IdHolder idHolder)
+    @PutMapping
+    public Mono<HttpStatus> cancelReservation(@RequestHeader("Authorization") String token, @RequestBody IdHolder idHolder)
     {
 
-        return reservationService.deleteReservation(token, idHolder.getId())
+        return reservationService.cancelReservation(token, idHolder.getId())
                 .flatMap(
                        httpStatus -> Mono.just(httpStatus)
                 ).onErrorResume(e-> Mono.error(e));

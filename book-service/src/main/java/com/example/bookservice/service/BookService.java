@@ -126,21 +126,20 @@ public class BookService {
 
     public Optional<Book> getBookById(Long id) {
 
-      return   bookRepository.findById(id);
+        return bookRepository.findById(id);
 
     }
 
     public List<Book> getAllBooks() {
 
-       return bookRepository.findAll();
+        return bookRepository.findAll();
     }
 
     public void updateBook(BookRequest bookRequest, Long id) throws NoSuchObjectException {
 
         Optional<Book> book = bookRepository.findById(id);
 
-        if(book.isPresent())
-        {
+        if (book.isPresent()) {
 
 
             bookRepository.save(Book.builder()
@@ -152,9 +151,7 @@ public class BookService {
                     .libraryId(bookRequest.getLibraryId())
                     .id(book.get().getId())
                     .build());
-        }
-        else
-        {
+        } else {
             throw new NoSuchObjectException("Book with provided id does not exist");
         }
 
@@ -162,36 +159,51 @@ public class BookService {
 
     public Mono<Book> changeBookStatusToReservation(String token, Long id) {
 
-       return isTokenValid(token).flatMap(valid-> {
-            if(valid)
-            {
-                Optional <Book> book = getBookById(id);
+        return isTokenValid(token).flatMap(valid -> {
+            if (valid) {
+                Optional<Book> book = getBookById(id);
 
-                if(book.isPresent())
-                {
-                    if(book.get().getStatus() == Book.BookStatus.AVAILABLE)
-                    {
+                if (book.isPresent()) {
+                    if (book.get().getStatus() == Book.BookStatus.AVAILABLE) {
                         book.get().setStatus(Book.BookStatus.RESERVED);
                         bookRepository.save(book.get());
 
                         return Mono.just(book.get());
 
+                    } else {
+                        return Mono.error(new ResponseStatusException(HttpStatus.CONFLICT));
                     }
-                    else
-                    {
-                       return Mono.error(new ResponseStatusException(HttpStatus.CONFLICT));
-                    }
-                }
-                else
-                {
+                } else {
                     return Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND));
                 }
-            }
-            else
-            {
+            } else {
                 return Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED));
             }
         });
 
+    }
+
+    public Mono<Book> changeBookStatusToAvailable(String token, Long id) {
+
+        return isTokenValid(token).flatMap(valid -> {
+            if (valid) {
+                Optional<Book> book = getBookById(id);
+                //if this user reserved,borrowed,returned this book
+                if (book.isPresent()) {
+
+
+                    book.get().setStatus(Book.BookStatus.AVAILABLE);
+                    bookRepository.save(book.get());
+
+                    return Mono.just(book.get());
+
+
+                } else {
+                    return Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND));
+                }
+            } else {
+                return Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED));
+            }
+        });
     }
 }

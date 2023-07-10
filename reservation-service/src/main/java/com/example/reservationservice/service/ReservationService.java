@@ -111,7 +111,7 @@ public class ReservationService {
                 });
     }
 
-    public Mono<HttpStatus> deleteReservation(String token, Long reservationId)
+    public Mono<HttpStatus> cancelReservation(String token, Long reservationId)
     {
         return isTokenValid(token).flatMap(valid->{
             if(valid)
@@ -122,9 +122,15 @@ public class ReservationService {
                     {
                         return idFromToken(token).flatMap(userId ->{
 
+
+
                             if(reservationRepository.getAllByUserId(Long.parseLong(userId)).stream().anyMatch(r->r.getId().equals(reservationId)))
                             {
-                                 reservationRepository.deleteById(reservationId);
+                                Reservation reservation = reservationRepository.getReferenceById(reservationId);
+
+                                reservation.setDueDate(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
+
+                                 reservationRepository.save(reservation);
                                  return Mono.just( HttpStatus.OK);
                             }
                             else
@@ -136,7 +142,10 @@ public class ReservationService {
                     }
                     else
                     {
-                         reservationRepository.deleteById(reservationId);
+                        Reservation reservation = reservationRepository.getReferenceById(reservationId);
+                        reservation.setDueDate(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
+
+                        reservationRepository.save(reservation);
                          return Mono.just(HttpStatus.OK);
                     }
                 });
@@ -204,6 +213,17 @@ public class ReservationService {
 
     }
     private Mono<BookResponse> changeBookStatusToReserved(String token,Long id)
+    {
+        return webClientBuilder.build()
+                .put()
+                .uri("http://book-service/api/book/reservation", uriBuilder -> uriBuilder.queryParam("id",id).build())
+                .header("Authorization", token)
+                .retrieve()
+                .bodyToMono(BookResponse.class);
+
+    }
+
+    private Mono<BookResponse> changeBookStatusToAvailable(String token,Long id)
     {
         return webClientBuilder.build()
                 .put()

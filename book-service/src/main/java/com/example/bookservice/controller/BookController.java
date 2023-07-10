@@ -102,5 +102,19 @@ public class BookController {
                 .onErrorResume(e-> Mono.error(e));
     }
 
+    @PutMapping("/available")
+    public Mono<ResponseEntity<Book>> changeBookStatusToAvailable(@RequestHeader("Authorization") String token, @RequestParam Long id)
+    {
+        return bookService.changeBookStatusToAvailable(token,id).flatMap(book -> {
+                    if (book.getStatus() == Book.BookStatus.AVAILABLE) {
+                        return Mono.just(ResponseEntity.status(HttpStatus.OK).body(book));
+                    } else {
+                        return Mono.just(ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).body(book));
+                    }
+                })
+            .onErrorResume(e-> Mono.error(e));
+    }
+
+
 
 }
