@@ -2,6 +2,7 @@ package com.example.reservationservice.service;
 
 import com.example.reservationservice.dto.AuditRequest;
 import com.example.reservationservice.dto.BookResponse;
+import com.example.reservationservice.dto.LoginRequest;
 import com.example.reservationservice.dto.ReservationRequest;
 import com.example.reservationservice.model.Reservation;
 import com.example.reservationservice.repository.ReservationRepository;
@@ -11,6 +12,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ResponseStatusException;
@@ -20,7 +23,9 @@ import reactor.core.publisher.Mono;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -130,6 +135,9 @@ public class ReservationService {
 
                                 reservation.setDueDate(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
 
+                                Mono <BookResponse> bookResponseMono = changeBookStatusToAvailable(token, reservationId);
+
+
                                  reservationRepository.save(reservation);
                                  return Mono.just( HttpStatus.OK);
                             }
@@ -233,4 +241,7 @@ public class ReservationService {
                 .bodyToMono(BookResponse.class);
 
     }
+
+
+
 }

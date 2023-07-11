@@ -115,6 +115,18 @@ public class BookController {
             .onErrorResume(e-> Mono.error(e));
     }
 
+    @PutMapping("/borrowed")
+    public Mono<ResponseEntity<Book>> changeBookStatusToBorrowed(@RequestHeader("Authorization") String token, @RequestParam Long id)
+    {
+        return bookService.changeBookStatusToBorrowed(token,id).flatMap(book -> {
+                    if (book.getStatus() == Book.BookStatus.BORROWED) {
+                        return Mono.just(ResponseEntity.status(HttpStatus.OK).body(book));
+                    } else {
+                        return Mono.just(ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).body(book));
+                    }
+                })
+                .onErrorResume(e-> Mono.error(e));
+    }
 
 
 }

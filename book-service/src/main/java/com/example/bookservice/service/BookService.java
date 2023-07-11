@@ -206,4 +206,29 @@ public class BookService {
             }
         });
     }
+
+    public Mono<Book> changeBookStatusToBorrowed(String token, Long id) {
+
+        return isTokenValid(token).flatMap(valid -> {
+            if (valid) {
+                Optional<Book> book = getBookById(id);
+                //if this user reserved, or this book is free returned this book
+                if (book.isPresent()) {
+
+
+                    book.get().setStatus(Book.BookStatus.BORROWED);
+                    bookRepository.save(book.get());
+
+                    return Mono.just(book.get());
+
+
+                } else {
+                    return Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND));
+                }
+            } else {
+                return Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED));
+            }
+        });
+    }
+
 }
