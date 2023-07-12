@@ -1,5 +1,6 @@
 package com.example.bookservice.controller;
 
+import com.example.bookservice.config.TokenScheduler;
 import com.example.bookservice.dto.BookRequest;
 import com.example.bookservice.model.Book;
 import com.example.bookservice.service.BookService;
@@ -47,6 +48,8 @@ public class BookController {
     @GetMapping
     public ResponseEntity<List<Book>> getBooks()
     {
+        System.out.println(TokenScheduler.getJwtToken());
+
        List<Book> books = bookService.getAllBooks();
 
        if(books.isEmpty())
@@ -105,6 +108,8 @@ public class BookController {
     @PutMapping("/available")
     public Mono<ResponseEntity<Book>> changeBookStatusToAvailable(@RequestHeader("Authorization") String token, @RequestParam Long id)
     {
+
+
         return bookService.changeBookStatusToAvailable(token,id).flatMap(book -> {
                     if (book.getStatus() == Book.BookStatus.AVAILABLE) {
                         return Mono.just(ResponseEntity.status(HttpStatus.OK).body(book));

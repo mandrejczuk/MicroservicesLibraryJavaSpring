@@ -187,21 +187,34 @@ public class BookService {
 
         return isTokenValid(token).flatMap(valid -> {
             if (valid) {
-                Optional<Book> book = getBookById(id);
-                //if this user reserved,borrowed,returned this book
-                if (book.isPresent()) {
+
+                return roleFromToken(token).flatMap(role->{
+
+                    if(role.equals("SERVICE")) {
 
 
-                    book.get().setStatus(Book.BookStatus.AVAILABLE);
-                    bookRepository.save(book.get());
+                        Optional<Book> book = getBookById(id);
+                        //if this user reserved,borrowed,returned this book
+                        if (book.isPresent()) {
 
-                    return Mono.just(book.get());
+
+                            book.get().setStatus(Book.BookStatus.AVAILABLE);
+                            bookRepository.save(book.get());
+
+                            return Mono.just(book.get());
 
 
-                } else {
-                    return Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND));
-                }
-            } else {
+                        } else {
+                            return Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND));
+                        }
+                    }
+                    else
+                    {
+                        return Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED));
+                    }
+            });
+        }
+        else {
                 return Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED));
             }
         });

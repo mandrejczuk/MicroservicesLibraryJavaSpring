@@ -1,5 +1,6 @@
 package com.example.reservationservice.controller;
 
+import com.example.reservationservice.config.TokenScheduler;
 import com.example.reservationservice.dto.IdHolder;
 import com.example.reservationservice.dto.ReservationRequest;
 import com.example.reservationservice.model.Reservation;
@@ -45,6 +46,8 @@ public class ReservationController {
 
     @GetMapping
     public Flux<Reservation> getUserReservations(@RequestHeader("Authorization") String token) {
+
+
         return reservationService.getUserReservations(token)
                 .flatMap(reservations -> {
                     if (reservations.isEmpty()) {
