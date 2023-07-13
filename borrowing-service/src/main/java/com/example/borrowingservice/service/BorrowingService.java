@@ -3,6 +3,7 @@ package com.example.borrowingservice.service;
 import com.example.borrowingservice.dto.AuditRequest;
 import com.example.borrowingservice.dto.BookResponse;
 import com.example.borrowingservice.dto.BorrowingRequest;
+import com.example.borrowingservice.dto.ReservationResponse;
 import com.example.borrowingservice.model.Borrowing;
 import com.example.borrowingservice.repository.BorrowingRepository;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ResponseStatusException;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
@@ -50,7 +52,34 @@ public class BorrowingService {
                                     .userId(Long.parseLong(userId))
                                     .build()));
                         } else {
-                            return Mono.error(new ResponseStatusException(HttpStatus.CONFLICT));
+
+                            if(bookResponse.getStatus() == BookResponse.BookStatus.RESERVED)
+                            {
+                                //check if this user reserved
+                                return getUserReservations(token).collectList().flatMap(reservationList->{
+
+                                    if(reservationList.stream().anyMatch(reservationResponse -> reservationResponse.getUserId().equals(Long.parseLong(userId))))
+                                    {
+                                        return Mono.just(borrowingRepository.save(Borrowing.builder()
+                                                .bookId(bookResponse.getId())
+                                                .dateBorrowed(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS))
+                                                .dueDate(LocalDateTime.now().plusDays(7).truncatedTo(ChronoUnit.SECONDS))
+                                                .userId(Long.parseLong(userId))
+                                                .build()));
+                                    }
+                                    else
+                                    {
+                                        return Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED));
+                                    }
+
+                                }) ;
+
+                            }
+                            else
+                            {
+                                return Mono.error(new ResponseStatusException(HttpStatus.CONFLICT));
+                            }
+
                         }
 
                     });
@@ -117,6 +146,16 @@ public class BorrowingService {
                 .uri("http://book-service/api/book/{id}",id)
                 .retrieve()
                 .bodyToMono(BookResponse.class);
+
+    }
+    private Flux<ReservationResponse> getUserReservations(String token)
+    {
+        return webClientBuilder.build()
+                .get()
+                .uri("http://reservation-service/api/reservation")
+                .header("Authorization", token)
+                .retrieve()
+                .bodyToFlux(ReservationResponse.class);
 
     }
 }

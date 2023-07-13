@@ -161,6 +161,11 @@ public class BookService {
 
         return isTokenValid(token).flatMap(valid -> {
             if (valid) {
+
+                return roleFromToken(token).flatMap(role->{
+
+                    if(role.equals("SERVICE")) {
+
                 Optional<Book> book = getBookById(id);
 
                 if (book.isPresent()) {
@@ -176,6 +181,12 @@ public class BookService {
                 } else {
                     return Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND));
                 }
+                    }
+                    else
+                    {
+                        return Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED));
+                    }
+                });
             } else {
                 return Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED));
             }
@@ -194,7 +205,6 @@ public class BookService {
 
 
                         Optional<Book> book = getBookById(id);
-                        //if this user reserved,borrowed,returned this book
                         if (book.isPresent()) {
 
 
@@ -224,8 +234,13 @@ public class BookService {
 
         return isTokenValid(token).flatMap(valid -> {
             if (valid) {
+
+                return roleFromToken(token).flatMap(role->{
+
+                    if(role.equals("SERVICE")) {
+
                 Optional<Book> book = getBookById(id);
-                //if this user reserved, or this book is free returned this book
+
                 if (book.isPresent()) {
 
 
@@ -238,9 +253,17 @@ public class BookService {
                 } else {
                     return Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND));
                 }
-            } else {
+                    }
+                    else
+                    {
+                        return Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED));
+                    }
+                });
+            }
+            else {
                 return Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED));
             }
+
         });
     }
 

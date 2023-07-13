@@ -1,5 +1,6 @@
 package com.example.reservationservice.service;
 
+import com.example.reservationservice.config.TokenScheduler;
 import com.example.reservationservice.dto.AuditRequest;
 import com.example.reservationservice.dto.BookResponse;
 import com.example.reservationservice.dto.LoginRequest;
@@ -225,7 +226,7 @@ public class ReservationService {
         return webClientBuilder.build()
                 .put()
                 .uri("http://book-service/api/book/reservation", uriBuilder -> uriBuilder.queryParam("id",id).build())
-                .header("Authorization", token)
+                .header("Authorization", TokenScheduler.getJwtToken())
                 .retrieve()
                 .bodyToMono(BookResponse.class);
 
