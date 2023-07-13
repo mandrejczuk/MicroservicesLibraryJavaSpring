@@ -1,13 +1,12 @@
 package com.example.borrowingservice.service;
 
-import com.example.borrowingservice.dto.AuditRequest;
-import com.example.borrowingservice.dto.BookResponse;
-import com.example.borrowingservice.dto.BorrowingRequest;
-import com.example.borrowingservice.dto.ReservationResponse;
+import com.example.borrowingservice.dto.*;
 import com.example.borrowingservice.model.Borrowing;
 import com.example.borrowingservice.repository.BorrowingRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +18,7 @@ import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -93,6 +93,59 @@ public class BorrowingService {
         });
 
     }
+
+
+    public Flux<List<Borrowing>> getUserBorrowings(String token)
+    {
+        return isTokenValid(token).flatMapMany(valid->{
+           if(valid)
+           {
+               return idFromToken(token).flatMapMany(userId->{
+
+                   Example<Borrowing> borrowingExample = Example.of(Borrowing.builder().userId(Long.parseLong(userId)).build());
+
+                 return Flux.just(borrowingRepository.findAll(borrowingExample));
+
+               });
+           }
+           else {
+               return Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED));
+           }
+        });
+    }
+
+
+//    public Mono <Borrowing> endBorrowing (String token, EndBorrowingRequest endBorrowingRequest)
+//    {
+//        return isTokenValid(token).flatMap(valid->{
+//
+//            if(valid)
+//            {
+//                return roleFromToken(token).flatMap(role->{
+//
+//                    if(role.equals("SERVICE"))
+//                    {
+//                            Borrowing borrowing = borrowingRepository.getReferenceById(endBorrowingRequest.getId());
+//                            borrowing.setDueDate(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
+//
+//                            borrowingRepository.save(borrowing);
+//
+//                            return Mono.just(borrowing);
+//                    }
+//                    else
+//                    {
+//                        return Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED));
+//                    }
+//
+//                });
+//            }
+//            else
+//            {
+//                return Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED));
+//            }
+//
+//        });
+//    }
 
 
     private Mono<String> roleFromToken(String token) {

@@ -12,11 +12,8 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class BorrowingRequest {
+public class EndBorrowingRequest {
 
-    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime dueDate;
-
-    private Long bookId;
+    private Long id;
 
 }
