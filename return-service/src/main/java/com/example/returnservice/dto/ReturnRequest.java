@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -12,14 +14,5 @@ import lombok.NoArgsConstructor;
 public class ReturnRequest {
 
     private Long borrowingId;
-    private ReturnStatus returnStatus;
-
-
-    public enum ReturnStatus {
-        RETURNED,
-        LATE,
-        DAMAGED,
-        LOST,
-        NOT_RETURNED
-    }
+    private BigDecimal fine;
 }

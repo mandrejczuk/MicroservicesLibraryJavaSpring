@@ -1,6 +1,7 @@
 package com.example.returnservice.service;
 
 import com.example.returnservice.dto.AuditRequest;
+import com.example.returnservice.dto.BorrowingResponse;
 import com.example.returnservice.dto.ReturnRequest;
 import com.example.returnservice.model.Return;
 import com.example.returnservice.repository.ReturnRepository;
@@ -15,6 +16,10 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Mono;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -26,18 +31,49 @@ public class ReturnService {
 
     public Mono<Return> createReturn(String token, ReturnRequest returnRequest) {
 
-        return isTokenValid(token).flatMap(valid->
-        {
-            if(valid)
+        //TODO CHECK IF ALREADY BORROWING ID EXISTS IN TABLE
+        //TODO CHANGE BOOK STATUS AGAIN TO AVAILABLE AFTER RETURN
+
+
+        return getBorrowingById(token,returnRequest.getBorrowingId()).flatMap(borrowingResponse -> {
+
+            if(borrowingResponse.getId() != null)
             {
-                //TODO if id from token is the same as in borrowingModel then create
-                return Mono.just(Return.builder().build());
+                return Mono.just( returnRepository.save(
+                        Return.builder()
+                                .dateReturned(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS))
+                                .borrowingId(borrowingResponse.getId())
+                                .fine(calculateFine(borrowingResponse, returnRequest) )
+                                .build()
+                                )
+                );
             }
             else
             {
                 return Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED));
             }
+
         });
+
+    }
+
+    private BigDecimal calculateFine(BorrowingResponse borrowingResponse, ReturnRequest returnRequest) {
+
+        if(returnRequest.getFine().equals(BigDecimal.ZERO))
+        {
+            if(borrowingResponse.getDueDate().isAfter(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS)))
+            {
+                return BigDecimal.ZERO;
+            }
+            else
+            {
+               return BigDecimal.valueOf(borrowingResponse.getDueDate().until(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS),ChronoUnit.DAYS) * 3 );
+            }
+        }
+        else
+        {
+            return returnRequest.getFine();
+        }
 
     }
 
@@ -84,4 +120,13 @@ public class ReturnService {
                 .retrieve()
                 .bodyToMono(String.class);
     }
+    private Mono<BorrowingResponse> getBorrowingById(String token, Long borrowingId) {
+        return webClientBuilder.build()
+                .get()
+                .uri("http://borrowing-service/api/borrowing/{id}",borrowingId)
+                .header("Authorization", token)
+                .retrieve()
+                .bodyToMono(BorrowingResponse.class);
+    }
+
 }

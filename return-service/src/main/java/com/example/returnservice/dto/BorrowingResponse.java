@@ -1,4 +1,4 @@
-package com.example.returnservice.model;
+package com.example.returnservice.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
@@ -6,18 +6,17 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.*;
-import java.math.BigDecimal;
+import javax.persistence.Column;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
 import java.time.LocalDateTime;
-
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
-@Table(name = "returns")
-public class Return {
+public class BorrowingResponse {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,11 +24,12 @@ public class Return {
     private Long id;
 
     @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime dateReturned;
+    private LocalDateTime dateBorrowed;
 
-    private BigDecimal fine;
-    @Column(unique = true)
-    private Long borrowingId;
+    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime dueDate;
 
+    private Long bookId;
+    private Long userId;
 
 }

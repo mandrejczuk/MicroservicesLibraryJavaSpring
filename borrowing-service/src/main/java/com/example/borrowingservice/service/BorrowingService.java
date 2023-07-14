@@ -6,7 +6,6 @@ import com.example.borrowingservice.repository.BorrowingRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Example;
-import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +18,7 @@ import reactor.core.publisher.Mono;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -35,6 +35,7 @@ public class BorrowingService {
         //isBookFree-status
         //createBorrowing
 
+        //TODO CANT BORROW IS THIS BOOK IS ALREADY BORROWED DOUBLE CHECK BOOK STATUS AND BOOK ID + BORRWOING REPO + RETURN REPO
         return isTokenValid(token).flatMap(valid -> {
             if (valid) {
                 return idFromToken(token).flatMap(userId-> {
@@ -147,6 +148,50 @@ public class BorrowingService {
 //        });
 //    }
 
+    public Mono<Borrowing> getBorrowingById(String token, Long id) {
+
+        return isTokenValid(token).flatMap(valid->{
+            if(valid)
+            {
+                return roleFromToken(token).flatMap(role->{
+
+                    Optional<Borrowing> borrowingOptional = borrowingRepository.findById(id);
+
+                    if(borrowingOptional.isPresent()) {
+
+                        if (!role.equals("USER")) {
+                                return Mono.just(borrowingOptional.get());
+                        } else {
+
+
+                            return idFromToken(token).flatMap(userId -> {
+
+                                if (borrowingOptional.get().getUserId().equals(Long.parseLong(userId))) {
+
+                                    return Mono.just(borrowingOptional.get());
+
+                                } else {
+
+                                    return Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED));
+                                }
+
+                            }).onErrorResume(e->Mono.error(e));
+                        }
+                    }
+                    else
+                    {
+                        return Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND));
+                    }
+                });
+            }
+            else
+            {
+                return Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED));
+            }
+        }).onErrorResume(e->Mono.error(e));
+
+    }
+
 
     private Mono<String> roleFromToken(String token) {
         return webClientBuilder.build()
@@ -211,5 +256,7 @@ public class BorrowingService {
                 .bodyToFlux(ReservationResponse.class);
 
     }
+
+
 }
 

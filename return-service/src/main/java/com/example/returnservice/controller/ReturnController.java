@@ -14,7 +14,7 @@ import reactor.core.publisher.Mono;
 @RequestMapping("/api/return")
 public class ReturnController {
 
-    private ReturnService returnService;
+    private final ReturnService returnService;
 
     @GetMapping
     public String testReturn()
@@ -23,7 +23,7 @@ public class ReturnController {
     }
 
     @PostMapping
-    public Mono<ResponseEntity<Return>> createReturn(@RequestHeader("Authorization")String token, ReturnRequest returnRequest)
+    public Mono<ResponseEntity<Return>> createReturn(@RequestHeader("Authorization")String token,@RequestBody ReturnRequest returnRequest)
     {
         return returnService.createReturn(token,returnRequest).flatMap(r->{
 

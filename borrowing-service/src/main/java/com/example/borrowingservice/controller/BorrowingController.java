@@ -36,6 +36,12 @@ public class BorrowingController {
         }).onErrorResume(e-> Mono.error(e));
     }
 
+    @GetMapping("/{id}")
+    public Mono<ResponseEntity<Borrowing>> getBorrowingById(@RequestHeader("Authorization")String token,@PathVariable Long id )
+    {
+        return borrowingService.getBorrowingById(token,id).flatMap(borrowing -> Mono.just(ResponseEntity.ok(borrowing)));
+    }
+
 //    @PutMapping ("/end")
 //    public Mono<ResponseEntity<Borrowing>> endBorrowing(@RequestHeader("Authorization") String token, @RequestBody EndBorrowingRequest endBorrowingRequest)
 //    {
