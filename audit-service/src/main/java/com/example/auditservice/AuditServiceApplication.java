@@ -8,6 +8,8 @@ import org.springframework.cloud.netflix.eureka.EnableEurekaClient;
 @EnableEurekaClient
 public class AuditServiceApplication {
 
+    //TODO make image of this service try to do dockercompse yaml file
+
     public static void main(String[] args) {
         SpringApplication.run(AuditServiceApplication.class, args);
     }
